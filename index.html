@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>30-Day Healthy Habit Challenge</title>
+<style>
+:root{--g:#1f6d5a;--bg:#f4f7f5;--ink:#24322e;--muted:#6f7d78;--line:#dfe7e3}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.app{max-width:900px;margin:auto;padding:18px}.hero{background:linear-gradient(135deg,#1f6d5a,#2d9277);color:white;border-radius:24px;padding:28px}
+.card{background:white;border-radius:18px;padding:18px;margin-top:16px;box-shadow:0 7px 22px rgba(22,48,39,.07)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}input,select,textarea{width:100%;padding:11px;border:1px solid #d4dfda;border-radius:11px;font:inherit}
+textarea{min-height:90px}.mission{border:1px solid var(--line);padding:13px;border-radius:13px}.mission input{width:auto;margin-right:8px}
+button{border:0;border-radius:11px;padding:12px 16px;font-weight:700;cursor:pointer;background:var(--g);color:white}
+.result{padding:12px;background:#e8f3ef;border-radius:12px;margin-top:12px}.status{margin-top:12px;font-weight:700}.small{font-size:12px;color:var(--muted)}
+.hp{position:absolute;left:-9999px}
+@media(max-width:620px){.grid,.missions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="hero">
+<h1>30-Day Healthy Habit Challenge</h1>
+<p>Consistency over perfection. Complete today’s check-in and evening reflection.</p>
+</section>
+
+<form id="challengeForm">
+<section class="card">
+<h2>Participant</h2>
+<div class="grid">
+<div><label>Name</label><input id="name" name="name" required></div>
+<div><label>Email</label><input id="email" name="email" type="email" required></div>
+<div><label>Date</label><input id="date" name="date" type="date" required></div>
+<div><label>Challenge Day</label><input id="challengeDay" name="challengeDay" type="number" min="1" max="30" value="1" required></div>
+</div>
+<input class="hp" name="website" tabindex="-1" autocomplete="off">
+</section>
+
+<section class="card">
+<h2>Body & Fasting Check-in</h2>
+<div class="grid">
+<div><label>Weight (kg)</label><input id="weight" name="weight" type="number" step="0.1"></div>
+<div><label>Waist / belly (cm)</label><input id="waist" name="waist" type="number" step="0.1"></div>
+<div><label>First meal</label><input id="firstMeal" name="firstMeal" type="time"></div>
+<div><label>Last meal</label><input id="lastMeal" name="lastMeal" type="time"></div>
+<div><label>Fasting goal</label><select id="fastingGoal" name="fastingGoal"><option>12</option><option selected>14</option><option>16</option><option>18</option></select></div>
+</div>
+<div class="result" id="fastResult">Enter first and last meal times to calculate fasting.</div>
+</section>
+
+<section class="card">
+<h2>Today’s Missions</h2>
+<div class="missions">
+<label class="mission"><input type="checkbox" id="water">Enough water</label>
+<label class="mission"><input type="checkbox" id="protein">Protein goal</label>
+<label class="mission"><input type="checkbox" id="movement">Movement</label>
+<label class="mission"><input type="checkbox" id="sleep">Sleep 7–8 hours</label>
+<label class="mission"><input type="checkbox" id="noSugar">No sugary drink</label>
+<label class="mission"><input type="checkbox" id="fastGoalDone">Fasting goal</label>
+</div>
+<div class="result" id="scoreResult">0 XP · 0% complete</div>
+</section>
+
+<section class="card">
+<h2>Evening Reflection</h2>
+<div><label>What went well today?</label><textarea id="wentWell" name="wentWell"></textarea></div>
+<div><label>What was difficult today?</label><textarea id="difficult" name="difficult"></textarea></div>
+<div><label>What will you improve tomorrow?</label><textarea id="improve" name="improve"></textarea></div>
+<div><label>Did today make Future You proud?</label>
+<select id="futureProud" name="futureProud"><option value="">Choose...</option><option>Yes</option><option>Almost</option><option>Not today, but I learned something</option></select></div>
+</section>
+
+<section class="card">
+<label><input style="width:auto" type="checkbox" id="consent" required>
+I agree that my challenge entries will be stored privately for this 30-day beta and reviewed by the challenge organiser.</label>
+<p class="small">Do not enter medical diagnoses or highly sensitive medical information. You may ask the organiser to delete your entries.</p>
+<button type="submit" id="submitButton">Save Today’s Check-in</button>
+<div class="status" id="status"></div>
+</section>
+</form>
+</div>
+
+<script>
+/* STEP 1: Replace the placeholder below with your deployed Google Apps Script web-app URL. */
+const GOOGLE_SCRIPT_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+const $ = id => document.getElementById(id);
+$("date").value = new Date().toISOString().slice(0,10);
+
+let participantId = localStorage.getItem("hhc_participant_id");
+if (!participantId) {
+  participantId = (crypto.randomUUID ? crypto.randomUUID() : "p-" + Date.now() + "-" + Math.random().toString(16).slice(2));
+  localStorage.setItem("hhc_participant_id", participantId);
+}
+
+["name","email"].forEach(id => {
+  const stored = localStorage.getItem("hhc_" + id);
+  if (stored) $(id).value = stored;
+});
+
+function fastingCalculation() {
+  const first = $("firstMeal").value, last = $("lastMeal").value;
+  if (!first || !last) return null;
+  const a = first.split(":").map(Number), b = last.split(":").map(Number);
+  let eating = ((b[0]*60+b[1])-(a[0]*60+a[1]))/60;
+  if (eating < 0) eating += 24;
+  return { eating, fasting: 24-eating };
+}
+
+function updateScore() {
+  const x = fastingCalculation();
+  const goal = Number($("fastingGoal").value);
+  if (x) {
+    $("fastGoalDone").checked = x.fasting >= goal;
+    $("fastResult").textContent = `${x.fasting.toFixed(1)} hours fasting · ${x.eating.toFixed(1)} hours eating`;
+  }
+  const pointMap = {fastGoalDone:25,water:15,protein:15,movement:20,sleep:15,noSugar:10};
+  const ids = Object.keys(pointMap);
+  const xp = ids.reduce((sum,id)=>sum+($(id).checked?pointMap[id]:0),0);
+  const completion = Math.round(ids.filter(id=>$(id).checked).length/ids.length*100);
+  $("scoreResult").textContent = `${xp} XP · ${completion}% complete`;
+  return {xp, completion};
+}
+
+["firstMeal","lastMeal","fastingGoal","water","protein","movement","sleep","noSugar","fastGoalDone"]
+.forEach(id => $(id).addEventListener("change", updateScore));
+
+$("challengeForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (GOOGLE_SCRIPT_URL.includes("PASTE_YOUR")) {
+    $("status").textContent = "Add your Google Apps Script URL in the HTML first.";
+    return;
+  }
+
+  $("submitButton").disabled = true;
+  $("status").textContent = "Saving...";
+
+  const fast = fastingCalculation();
+  const score = updateScore();
+  const body = new URLSearchParams({
+    participantId,
+    name: $("name").value.trim(),
+    email: $("email").value.trim(),
+    date: $("date").value,
+    challengeDay: $("challengeDay").value,
+    weight: $("weight").value,
+    waist: $("waist").value,
+    firstMeal: $("firstMeal").value,
+    lastMeal: $("lastMeal").value,
+    fastingGoal: $("fastingGoal").value,
+    fastingHours: fast ? fast.fasting.toFixed(2) : "",
+    water: $("water").checked,
+    protein: $("protein").checked,
+    movement: $("movement").checked,
+    sleep: $("sleep").checked,
+    noSugar: $("noSugar").checked,
+    xp: score.xp,
+    habitRate: score.completion,
+    wentWell: $("wentWell").value.trim(),
+    difficult: $("difficult").value.trim(),
+    improve: $("improve").value.trim(),
+    futureProud: $("futureProud").value,
+    consent: $("consent").checked ? "yes" : "no",
+    website: document.querySelector('[name="website"]').value
+  });
+
+  try {
+    /*
+      no-cors is used because Apps Script web apps do not return standard CORS
+      headers to a page hosted on another domain. The row will still be sent,
+      but the browser cannot read the returned JSON.
+    */
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+      body
+    });
+
+    localStorage.setItem("hhc_name", $("name").value.trim());
+    localStorage.setItem("hhc_email", $("email").value.trim());
+    localStorage.setItem("hhc_last_submission", new Date().toISOString());
+
+    $("status").textContent = "Check-in sent. Thank you for showing up today!";
+  } catch (error) {
+    $("status").textContent = "The entry could not be sent. Please check your connection and try again.";
+  } finally {
+    $("submitButton").disabled = false;
+  }
+});
+
+updateScore();
+</script>
+</body>
+</html>
