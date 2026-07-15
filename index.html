@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Healthy Habit Challenge</title>
+<style>
+:root{--g:#1f6d5a;--g2:#2d9277;--bg:#f4f7f5;--ink:#24322e;--muted:#6f7d78;--line:#dfe7e3;--gold:#d6a442}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.app{max-width:1000px;margin:auto;padding:16px 16px 90px}.hero{background:linear-gradient(135deg,var(--g),var(--g2));color:white;border-radius:24px;padding:26px}
+.card{background:white;border-radius:18px;padding:18px;margin-top:14px;box-shadow:0 7px 22px rgba(22,48,39,.07)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{background:white;border-radius:15px;padding:14px}.metric small{display:block;color:var(--muted)}.metric strong{display:block;font-size:24px;margin-top:5px}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}input,select,textarea{width:100%;padding:11px;border:1px solid #d3ded8;border-radius:11px;font:inherit;background:white}
+textarea{min-height:88px}button{border:0;border-radius:11px;padding:12px 16px;font-weight:700;cursor:pointer}.primary{background:var(--g);color:white}.secondary{background:#e9f0ed}.danger{background:#fde8e8;color:#a23a3a}
+.hidden{display:none!important}.step{display:none}.step.active{display:block}.welcome{max-width:760px;margin:30px auto}
+.choice-grid,.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.choice,.mission{border:1px solid var(--line);border-radius:14px;padding:14px;background:white}.choice input,.mission input{width:auto;margin-right:8px}
+.note{background:#e8f3ef;border-radius:14px;padding:14px;line-height:1.5}.progress{height:13px;background:#e7ece9;border-radius:999px;overflow:hidden}.bar{height:100%;background:var(--g);width:0}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);display:flex;justify-content:center}.tabs button{flex:1;max-width:180px;background:white;color:var(--muted);border-radius:0;font-size:12px}.tabs button.active{color:var(--g)}
+.view{display:none}.view.active{display:block}.calendar{display:grid;grid-template-columns:repeat(10,1fr);gap:7px}.day{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef2f0;font-weight:700}.day.done{background:#dff3e7;color:#17623b}.day.today{outline:3px solid var(--gold)}
+canvas{width:100%;height:220px}.status{font-weight:700;margin-top:12px}.small{font-size:12px;color:var(--muted)}.hp{position:absolute;left:-9999px}
+@media(max-width:760px){.metric-grid{grid-template-columns:repeat(2,1fr)}.grid,.grid3,.choice-grid,.missions{grid-template-columns:1fr}.calendar{grid-template-columns:repeat(5,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="onboarding" class="welcome">
+  <div class="hero"><h1>Healthy Habit Challenge</h1><p>You do not have to be perfect. You only have to come back tomorrow.</p></div>
+  <div class="card step active" data-step="1"><h2>Welcome 🌱</h2><p>This 30-day challenge is for people who want to lose weight but find it difficult to stay consistent.</p><div class="note">We focus on one small win at a time.</div><button class="primary" style="margin-top:14px" onclick="nextStep()">Start My Journey</button></div>
+  <div class="card step" data-step="2"><h2>Tell us about you</h2><div class="grid3">
+    <div><label>Name</label><input id="onName"></div><div><label>Email</label><input id="onEmail" type="email"></div><div><label>Start date</label><input id="onStartDate" type="date"></div>
+    <div><label>Current weight</label><input id="onWeight" type="number" step="0.1"></div><div><label>Target weight</label><input id="onTarget" type="number" step="0.1"></div><div><label>Height cm</label><input id="onHeight" type="number"></div>
+  </div><button class="secondary" onclick="prevStep()">Back</button><button class="primary" onclick="nextStep()">Continue</button></div>
+  <div class="card step" data-step="3"><h2>Why do you want to change?</h2><div class="choice-grid">
+    <label class="choice"><input type="radio" name="why" value="Health">❤️ Better health</label>
+    <label class="choice"><input type="radio" name="why" value="Confidence">💪 More confidence</label>
+    <label class="choice"><input type="radio" name="why" value="Freedom">🌍 More freedom and energy</label>
+  </div><button class="secondary" onclick="prevStep()">Back</button><button class="primary" onclick="nextStep()">Continue</button></div>
+  <div class="card step" data-step="4"><h2>Your first small goal</h2><div class="grid">
+    <div><label>First milestone weight</label><input id="onMilestone" type="number" step="0.1"></div>
+    <div><label>Your reward</label><input id="onReward" placeholder="Example: new hiking shoes"></div>
+  </div><label style="margin-top:12px">Why is this reward meaningful?</label><textarea id="onRewardWhy"></textarea>
+  <button class="secondary" onclick="prevStep()">Back</button><button class="primary" onclick="nextStep()">Continue</button></div>
+  <div class="card step" data-step="5"><h2>What would you like to focus on this week?</h2><div class="choice-grid">
+    <label class="choice"><input type="radio" name="focus" value="Walk 30 minutes">🚶 Walk 30 minutes</label>
+    <label class="choice"><input type="radio" name="focus" value="No sugary drinks">🥤 No sugary drinks</label>
+    <label class="choice"><input type="radio" name="focus" value="Sleep 7–8 hours">😴 Sleep 7–8 hours</label>
+    <label class="choice"><input type="radio" name="focus" value="Protein with meals">🥩 Protein with meals</label>
+    <label class="choice"><input type="radio" name="focus" value="Meal planning">🥗 Meal planning</label>
+    <label class="choice"><input type="radio" name="focus" value="Custom">✨ Create my own</label>
+  </div><div id="customFocusWrap" class="hidden" style="margin-top:12px"><label>My personal focus</label><input id="customFocus"></div>
+  <button class="secondary" onclick="prevStep()">Back</button><button class="primary" onclick="finishOnboarding()">Start Challenge</button></div>
+</section>
+
+<section id="mainApp" class="hidden">
+  <div class="hero"><h1 id="greeting"></h1><p id="coachMessage"></p></div>
+  <section id="home" class="view active">
+    <div class="metric-grid">
+      <div class="metric"><small>Challenge Day</small><strong id="homeDay">1 / 30</strong></div>
+      <div class="metric"><small>Consistency</small><strong id="homeConsistency">0%</strong></div>
+      <div class="metric"><small>Weekly Focus</small><strong id="homeFocus">—</strong></div>
+      <div class="metric"><small>Reward</small><strong id="homeReward">—</strong></div>
+    </div>
+    <div class="card"><h2>Today's Mission</h2><div class="note" id="homeMissionSummary"></div><button class="primary" style="margin-top:14px" onclick="openTab('today')">Start Today's Check-in</button></div>
+    <div class="card"><h2>Why you started</h2><div class="note" id="whyReminder"></div></div>
+  </section>
+
+  <section id="today" class="view">
+    <div class="card"><h2>Today's Check-in</h2><div class="grid3">
+      <div><label>Date</label><input id="date" type="date"></div><div><label>Weight (optional)</label><input id="weight" type="number" step="0.1"></div><div><label>Waist (optional)</label><input id="waist" type="number" step="0.1"></div>
+      <div><label>First meal</label><input id="firstMeal" type="time"></div><div><label>Last meal</label><input id="lastMeal" type="time"></div>
+      <div><label>Fasting goal</label><select id="fastingGoal"><option value="12">12 hours</option><option value="14" selected>14 hours</option><option value="16">16 hours</option><option value="18">18 hours</option></select></div>
+    </div><div id="fastResult" class="note" style="margin-top:12px">Enter first and last meal times.</div></div>
+    <div class="card"><h2>Today's Missions</h2><div class="missions">
+      <label class="mission"><input id="mFast" type="checkbox">Complete fasting goal</label>
+      <label class="mission"><input id="mWater" type="checkbox">Drink enough water</label>
+      <label class="mission"><input id="mProtein" type="checkbox">Protein goal</label>
+      <label class="mission"><input id="mSleep" type="checkbox">Sleep 7–8 hours</label>
+      <label class="mission"><input id="mFocus" type="checkbox"><span id="focusMissionText">Weekly focus</span></label>
+    </div><div class="progress" style="margin-top:14px"><div id="missionBar" class="bar"></div></div><p id="missionText">0% complete today</p></div>
+    <div class="card"><h2>Evening Reflection</h2><div class="grid3">
+      <div><label>What went well?</label><textarea id="wentWell"></textarea></div><div><label>What was difficult?</label><textarea id="difficult"></textarea></div><div><label>What can be 1% better tomorrow?</label><textarea id="improve"></textarea></div>
+    </div><label style="margin-top:12px">How did today feel?</label><select id="dayFeeling"><option value="">Choose...</option><option>Easy</option><option>Manageable</option><option>Difficult</option><option>Very difficult</option></select>
+    <label style="margin-top:12px"><input style="width:auto" id="consent" type="checkbox"> I agree that my beta check-in data may be stored privately.</label>
+    <input id="website" class="hp" tabindex="-1"><button class="primary" style="margin-top:14px" onclick="saveToday()">Save Today's Check-in</button><div id="saveStatus" class="status"></div></div>
+  </section>
+
+  <section id="journey" class="view">
+    <div class="metric-grid"><div class="metric"><small>Consistency</small><strong id="journeyConsistency">0%</strong></div><div class="metric"><small>Healthy Days</small><strong id="healthyDays">0 / 30</strong></div><div class="metric"><small>Average Fast</small><strong id="averageFast">0.0 h</strong></div><div class="metric"><small>Latest Weight</small><strong id="latestWeight">—</strong></div></div>
+    <div class="card"><h2>30-Day Journey</h2><div id="calendar" class="calendar"></div></div>
+    <div class="card"><h2>Weight Progress</h2><canvas id="weightChart" width="1000" height="220"></canvas></div>
+    <div class="card"><h2>Weekly Wins</h2><div id="weeklyWins" class="note"></div></div>
+  </section>
+
+  <section id="rewards" class="view">
+    <div class="card"><h2>Your First Milestone</h2><div class="grid"><div class="note" id="rewardStart"></div><div class="note" id="rewardGoal"></div></div><div class="progress" style="margin-top:16px"><div id="rewardBar" class="bar"></div></div><p id="rewardProgressText"></p></div>
+    <div class="card"><h2>Your Reward 🎁</h2><div id="rewardCard" class="note"></div></div>
+  </section>
+
+  <section id="me" class="view"><div class="card"><h2>My Journey</h2><div class="grid">
+    <div><label>Name</label><input id="meName"></div><div><label>Email</label><input id="meEmail"></div><div><label>Why</label><select id="meWhy"><option>Health</option><option>Confidence</option><option>Freedom</option></select></div>
+    <div><label>Weekly Focus</label><input id="meFocus"></div><div><label>First Milestone</label><input id="meMilestone" type="number" step="0.1"></div><div><label>Reward</label><input id="meReward"></div>
+  </div><button class="primary" onclick="saveProfileChanges()">Save Changes</button><button class="danger" onclick="resetApp()">Reset My Test Data</button></div></section>
+
+  <nav class="tabs">
+    <button class="active" data-tab="home">🏠<br>Home</button><button data-tab="today">✅<br>Today</button><button data-tab="journey">📈<br>Journey</button><button data-tab="rewards">🎁<br>Rewards</button><button data-tab="me">👤<br>Me</button>
+  </nav>
+</section>
+</div>
+<script>
+const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbypupMMV6mOzJnD_tdJiRNkbEN5s4cY4StR7bRzjfRozdTwW8B_pc4TpsH9HOSPoHK6/exec";
+const PROFILE_KEY="hhc_profile_v2",ENTRIES_KEY="hhc_entries_v2";
+const $=id=>document.getElementById(id);
+let profile=JSON.parse(localStorage.getItem(PROFILE_KEY)||"null");
+let entries=JSON.parse(localStorage.getItem(ENTRIES_KEY)||"[]");
+let currentStep=1;
+const todayStr=()=>new Date().toISOString().slice(0,10);
+$("onStartDate").value=todayStr();$("date").value=todayStr();
+function showStep(n){currentStep=n;document.querySelectorAll(".step").forEach(s=>s.classList.toggle("active",Number(s.dataset.step)===n))}
+function nextStep(){if(currentStep===2&&(!$("onName").value.trim()||!$("onEmail").value.trim()))return alert("Please enter name and email.");if(currentStep===3&&!document.querySelector('input[name="why"]:checked'))return alert("Choose one reason.");showStep(Math.min(5,currentStep+1))}
+function prevStep(){showStep(Math.max(1,currentStep-1))}
+document.querySelectorAll('input[name="focus"]').forEach(el=>el.addEventListener("change",()=>{$("customFocusWrap").classList.toggle("hidden",el.value!=="Custom")}));
+function makeId(){return crypto.randomUUID?crypto.randomUUID():"p-"+Date.now()}
+function finishOnboarding(){const why=document.querySelector('input[name="why"]:checked')?.value;const f=document.querySelector('input[name="focus"]:checked')?.value;const focus=f==="Custom"?$("customFocus").value.trim():f;if(!focus)return alert("Choose a weekly focus.");profile={participantId:makeId(),name:$("onName").value.trim(),email:$("onEmail").value.trim(),startDate:$("onStartDate").value||todayStr(),startWeight:Number($("onWeight").value)||null,targetWeight:Number($("onTarget").value)||null,height:Number($("onHeight").value)||null,why,milestone:Number($("onMilestone").value)||null,reward:$("onReward").value.trim(),rewardWhy:$("onRewardWhy").value.trim(),focus};localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));showApp()}
+function showApp(){$("onboarding").classList.add("hidden");$("mainApp").classList.remove("hidden");fillProfile();renderAll()}
+function challengeDay(){const s=new Date(profile.startDate||todayStr()),n=new Date(todayStr());return Math.max(1,Math.min(30,Math.floor((n-s)/86400000)+1))}
+function yesterdayEntry(){const d=new Date();d.setDate(d.getDate()-1);return entries.find(e=>e.date===d.toISOString().slice(0,10))}
+function daysSinceLast(){if(!entries.length)return 0;const l=new Date([...entries].sort((a,b)=>b.date.localeCompare(a.date))[0].date);return Math.floor((new Date(todayStr())-l)/86400000)}
+function whyLine(){if(profile.why==="Health")return"Every healthy choice today is an investment in your future health.";if(profile.why==="Confidence")return"Every small habit helps you become more confident in your journey.";return"Every consistent day brings you closer to more freedom and energy."}
+function coachMessage(){const y=yesterdayEntry(),gap=daysSinceLast();if(gap>=3)return`It's good to see you again, ${profile.name}. You do not need to restart. You only need to take the next step today.`;if(!y)return`Welcome, ${profile.name}. You do not have to be perfect. Let us focus on one small win today.`;if(y.completion>=90)return`Great work yesterday, ${profile.name}. Small wins build big transformations. Let us keep going.`;if(y.completion>=50)return`Yesterday you completed ${y.completedCount} of ${y.totalMissions} missions. That is still progress. Today is another chance.`;return`Yesterday did not go as planned. That happens to everyone. The important thing is that you are here today.`}
+function fastingCalc(){const a=$("firstMeal").value,b=$("lastMeal").value;if(!a||!b)return null;const x=a.split(":").map(Number),y=b.split(":").map(Number);let eat=((y[0]*60+y[1])-(x[0]*60+x[1]))/60;if(eat<0)eat+=24;return{eating:eat,fasting:24-eat}}
+function updateMission(){const x=fastingCalc(),goal=Number($("fastingGoal").value);if(x){$("mFast").checked=x.fasting>=goal;$("fastResult").textContent=`${x.fasting.toFixed(1)} hours fasting · ${x.eating.toFixed(1)} hours eating`};const ids=["mFast","mWater","mProtein","mSleep","mFocus"],done=ids.filter(id=>$(id).checked).length,p=Math.round(done/ids.length*100);$("missionBar").style.width=p+"%";$("missionText").textContent=p+"% complete today"}
+["firstMeal","lastMeal","fastingGoal","mFast","mWater","mProtein","mSleep","mFocus"].forEach(id=>$(id).addEventListener("change",updateMission));
+async function saveToday(){if(!$("consent").checked)return alert("Please tick the consent box.");const x=fastingCalc(),ids=["mFast","mWater","mProtein","mSleep","mFocus"],state={};ids.forEach(id=>state[id]=$(id).checked);const completedCount=ids.filter(id=>$(id).checked).length,completion=Math.round(completedCount/ids.length*100),date=$("date").value;const entry={date,weight:Number($("weight").value)||null,waist:Number($("waist").value)||null,firstMeal:$("firstMeal").value,lastMeal:$("lastMeal").value,fastingGoal:Number($("fastingGoal").value),fastingHours:x?Number(x.fasting.toFixed(2)):null,missions:state,completedCount,totalMissions:ids.length,completion,wentWell:$("wentWell").value.trim(),difficult:$("difficult").value.trim(),improve:$("improve").value.trim(),dayFeeling:$("dayFeeling").value};entries=entries.filter(e=>e.date!==date);entries.push(entry);entries.sort((a,b)=>a.date.localeCompare(b.date));localStorage.setItem(ENTRIES_KEY,JSON.stringify(entries));$("saveStatus").textContent="Saving...";const body=new URLSearchParams({recordType:"daily_checkin",participantId:profile.participantId,name:profile.name,email:profile.email,date,challengeDay:String(challengeDay()),why:profile.why,startWeight:profile.startWeight??"",targetWeight:profile.targetWeight??"",milestone:profile.milestone??"",reward:profile.reward,rewardWhy:profile.rewardWhy,weeklyFocus:profile.focus,weight:entry.weight??"",waist:entry.waist??"",firstMeal:entry.firstMeal,lastMeal:entry.lastMeal,fastingGoal:String(entry.fastingGoal),fastingHours:entry.fastingHours??"",water:String(entry.missions.mWater),protein:String(entry.missions.mProtein),sleep:String(entry.missions.mSleep),focusDone:String(entry.missions.mFocus),fastingDone:String(entry.missions.mFast),habitRate:String(entry.completion),wentWell:entry.wentWell,difficult:entry.difficult,improve:entry.improve,dayFeeling:entry.dayFeeling,consent:"yes",website:$("website").value});try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body});$("saveStatus").textContent="Check-in saved. Thank you for showing up today!"}catch(e){$("saveStatus").textContent="Saved on this device, but the online submission may have failed."}renderAll()}
+function consistency(){return entries.length?Math.round(entries.reduce((s,e)=>s+e.completion,0)/entries.length):0}
+function latestWeight(){const a=entries.filter(e=>e.weight).sort((x,y)=>y.date.localeCompare(x.date));return a.length?a[0].weight:null}
+function averageFast(){const a=entries.filter(e=>e.fastingHours!=null);return a.length?a.reduce((s,e)=>s+e.fastingHours,0)/a.length:0}
+function fillProfile(){$("meName").value=profile.name||"";$("meEmail").value=profile.email||"";$("meWhy").value=profile.why||"Health";$("meFocus").value=profile.focus||"";$("meMilestone").value=profile.milestone||"";$("meReward").value=profile.reward||"";$("focusMissionText").textContent=profile.focus||"Weekly focus"}
+function saveProfileChanges(){profile.name=$("meName").value.trim();profile.email=$("meEmail").value.trim();profile.why=$("meWhy").value;profile.focus=$("meFocus").value.trim();profile.milestone=Number($("meMilestone").value)||null;profile.reward=$("meReward").value.trim();localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));renderAll();alert("Profile updated.")}
+function openTab(tab){document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===tab));if(tab==="journey")drawChart()}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>openTab(b.dataset.tab)));
+function drawChart(){const c=$("weightChart"),ctx=c.getContext("2d"),data=entries.filter(e=>e.weight).map(e=>e.weight);ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle="#dfe7e3";for(let i=1;i<=4;i++){ctx.beginPath();ctx.moveTo(45,i*45);ctx.lineTo(c.width-20,i*45);ctx.stroke()}if(!data.length){ctx.fillStyle="#6f7d78";ctx.font="16px Arial";ctx.fillText("No weight data yet.",55,120);return}const mn=Math.min(...data)-1,mx=Math.max(...data)+1,x=i=>45+i*((c.width-75)/Math.max(1,data.length-1)),y=v=>190-(v-mn)/(mx-mn||1)*150;ctx.strokeStyle="#1f6d5a";ctx.lineWidth=4;ctx.beginPath();data.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.stroke()}
+function renderAll(){if(!profile)return;$("greeting").textContent=`Good morning, ${profile.name} 🌱`;$("coachMessage").textContent=coachMessage();$("homeDay").textContent=`${challengeDay()} / 30`;$("homeConsistency").textContent=consistency()+"%";$("homeFocus").textContent=profile.focus||"—";$("homeReward").textContent=profile.reward||"—";$("whyReminder").innerHTML=`<b>${profile.why}</b><br>${whyLine()}`;$("homeMissionSummary").textContent=entries.find(e=>e.date===todayStr())?"Today's check-in is saved. You can still update it.":"Your mission is ready. Focus on showing up, not being perfect.";$("journeyConsistency").textContent=consistency()+"%";$("healthyDays").textContent=`${entries.filter(e=>e.completion>=50).length} / 30`;$("averageFast").textContent=averageFast().toFixed(1)+" h";$("latestWeight").textContent=latestWeight()?latestWeight()+" kg":"—";$("rewardStart").textContent=`Start: ${profile.startWeight||"—"} kg`;$("rewardGoal").textContent=`First goal: ${profile.milestone||"—"} kg`;$("rewardCard").innerHTML=`<b>${profile.reward||"Choose a reward"}</b><br>${profile.rewardWhy||"Celebrate your small win."}`;$("calendar").innerHTML=Array.from({length:30},(_,i)=>{const d=new Date(profile.startDate);d.setDate(d.getDate()+i);const ds=d.toISOString().slice(0,10),e=entries.find(x=>x.date===ds);return`<div class="day ${e&&e.completion>=50?"done":""} ${ds===todayStr()?"today":""}">${i+1}</div>`}).join("");$("weeklyWins").textContent=entries.length?`You have checked in on ${entries.length} day(s). You completed at least half of your missions on ${entries.filter(e=>e.completion>=50).length} day(s).`:"Your wins will appear here.";const lw=latestWeight();if(profile.startWeight&&profile.milestone&&lw){const total=profile.startWeight-profile.milestone,done=profile.startWeight-lw,p=Math.max(0,Math.min(100,Math.round(done/total*100)));$("rewardBar").style.width=p+"%";$("rewardProgressText").textContent=`${p}% closer to your first milestone`}else{$("rewardBar").style.width="0%";$("rewardProgressText").textContent="Add a weight check-in to calculate progress."}fillProfile();updateMission()}
+function resetApp(){if(confirm("Delete local profile and progress from this device?")){localStorage.removeItem(PROFILE_KEY);localStorage.removeItem(ENTRIES_KEY);location.reload()}}
+if(profile)showApp();
+</script>
+</body>
+</html>
